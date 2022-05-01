@@ -1,0 +1,45 @@
+version: "3.9"
+services:
+  api:
+    container_name: api
+    build: ./server/src
+    ports:
+      - 3001:3001
+    environment:
+     - NODE_ENV=local
+     - ES_HOST=elasticsearch
+     - NODE_PORT=3001
+     - ELASTIC_URL=http://elasticsearch:9200
+    links:
+        - elasticsearch
+    depends_on:
+        - elasticsearch
+    networks: 
+      - esnet
+  client:
+    container_name: client
+    build: ./client
+    ports:
+      - 3000:3000
+    links:
+      - api
+    depends_on:
+      - api
+    networks:
+    - esnet
+  elasticsearch:
+    container_name: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.0.1
+    environment:
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - discovery.type=single-node
+    logging:
+      driver: none
+    ports:
+      - 9300:9300
+      - 9200:9200
+    networks: 
+      - esnet
+networks:
+  esnet:
